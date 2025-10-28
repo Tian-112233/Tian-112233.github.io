@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习打卡应用</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* 您的CSS样式保持不变 */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+        }
+        
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            color: #2575fc;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            display: block;
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, #6a11cb, #2575fc);
+            margin: 10px auto;
+            border-radius: 2px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #34495e;
+        }
+        
+        input, select, button {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        button:hover {
+            background: linear-gradient(135deg, #2980b9, #2575fc);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .timer {
+            font-size: 4rem;
+            text-align: center;
+            margin: 30px 0;
+            color: #e74c3c;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .calendar-header {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .calendar-header div {
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            padding: 10px;
+        }
+        
+        .calendar-day {
+            border: 1px solid #e0e0e0;
+            padding: 12px 5px;
+            text-align: center;
+            min-height: 70px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .calendar-day.checked {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border-color: #27ae60;
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3);
+        }
+        
+        .calendar-date {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .calendar-check {
+            font-size: 18px;
+        }
+        
+        .admin-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.5s;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .user-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            margin: 10px;
+            min-width: 150px;
+            border-top: 4px solid #3498db;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar {
+                grid-template-columns: repeat(7, 1fr);
+            }
+            
+            .calendar-day {
+                padding: 8px 2px;
+                min-height: 50px;
+            }
+            
+            .timer {
+                font-size: 3rem;
+            }
+            
+            .user-stats {
+                flex-direction: column;
+            }
+        }
+        
+        .sound-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .sound-toggle {
+            width: auto;
+            padding: 8px 15px;
+            background: #f1f2f6;
+            color: #2c3e50;
+            margin-left: 10px;
+        }
+        
+        .sound-toggle.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .month-selector {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-selector button {
+            width: auto;
+            padding: 10px 20px;
+        }
+        
+        .month-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .user-list {
+            margin-top: 20px;
+        }
+        
+        .user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .user-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .delete-user {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .delete-user:hover {
+            background: #c0392b;
+        }
+        
+        .user-details {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .user-detail-view {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+        }
+        
+        .back-button {
+            background: #7f8c8d;
+            margin-bottom: 15px;
+        }
+        
+        .back-button:hover {
+            background: #636e72;
+        }
+        
+        .timer-status {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .background-timer-active {
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0) !important;
+        }
+        
+        .vibration-control {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .vibration-toggle {
+            width: auto;
+            padding: 8px 15px;
+            background: #f1f2f6;
+            color: #2c3e50;
+            margin-left: 10px;
+        }
+        
+        .vibration-toggle.active {
+            background: #3498db;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>学习打卡应用</h1>
+        
+        <!-- 用户打卡区域 -->
+        <div class="section" id="user-section">
+            <h2>开始学习</h2>
+            <div class="form-group">
+                <label for="user-name">姓名</label>
+                <input type="text" id="user-name" placeholder="请输入您的姓名">
+            </div>
+            <div class="form-group">
+                <label for="study-time">学习时长（分钟）</label>
+                <input type="number" id="study-time" placeholder="请输入学习时长" min="1" max="480">
+            </div>
+            
+            <div class="sound-control">
+                <label for="sound-enabled">学习完成提示音</label>
+                <button id="sound-toggle" class="sound-toggle active">开启</button>
+            </div>
+            
+            <div class="vibration-control">
+                <label for="vibration-enabled">学习完成振动</label>
+                <button id="vibration-toggle" class="vibration-toggle active">开启</button>
+            </div>
+            
+            <button id="start-study">开始学习</button>
+            
+            <div id="timer-section" class="hidden">
+                <div class="timer-status" id="timer-status">计时器运行中...</div>
+                <div class="timer" id="timer-display">00:00</div>
+                <button id="cancel-study">取消学习</button>
+            </div>
+        </div>
+        
+        <!-- 学习统计 -->
+        <div class="section">
+            <h2>学习统计</h2>
+            <div class="user-stats">
+                <div class="stat-card">
+                    <div class="stat-label">总学习天数</div>
+                    <div class="stat-value" id="total-days">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">总学习时长</div>
+                    <div class="stat-value" id="total-hours">0</div>
+                    <div class="stat-label">分钟</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">连续学习</div>
+                    <div class="stat-value" id="streak-days">0</div>
+                    <div class="stat-label">天</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 学习记录区域 -->
+        <div class="section">
+            <h2>学习记录</h2>
+            <div class="month-selector">
+                <button id="prev-month">上个月</button>
+                <div class="month-display" id="current-month">2023年11月</div>
+                <button id="next-month">下个月</button>
+            </div>
+            <div id="calendar-container">
+                <div class="calendar-header">
+                    <div>日</div>
+                    <div>一</div>
+                    <div>二</div>
+                    <div>三</div>
+                    <div>四</div>
+                    <div>五</div>
+                    <div>六</div>
+                </div>
+                <div class="calendar" id="calendar"></div>
+            </div>
+            
+            <div id="trend-chart-container">
+                <h3>学习趋势</h3>
+                <div class="chart-container">
+                    <canvas id="trend-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 管理员区域 -->
+        <div class="section admin-section">
+            <h2>管理员功能</h2>
+            <div class="form-group">
+                <label for="admin-password">管理员密码</label>
+                <input type="password" id="admin-password" placeholder="请输入管理员密码">
+            </div>
+            <button id="admin-login">管理员登录</button>
+            
+            <div id="admin-panel" class="hidden">
+                <h3>所有用户学习情况</h3>
+                <div class="form-group">
+                    <label for="date-start">开始日期</label>
+                    <input type="date" id="date-start">
+                </div>
+                <div class="form-group">
+                    <label for="date-end">结束日期</label>
+                    <input type="date" id="date-end">
+                </div>
+                <button id="filter-data">筛选数据</button>
+                
+                <div class="user-list" id="user-list">
+                    <h4>用户列表</h4>
+                    <!-- 用户列表将在这里动态生成 -->
+                </div>
+                
+                <div id="user-detail-view" class="user-detail-view hidden">
+                    <button id="back-to-user-list" class="back-button">返回用户列表</button>
+                    <h4 id="detail-user-name">用户详情</h4>
+                    
+                    <div class="user-stats">
+                        <div class="stat-card">
+                            <div class="stat-label">总学习天数</div>
+                            <div class="stat-value" id="detail-total-days">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">总学习时长</div>
+                            <div class="stat-value" id="detail-total-hours">0</div>
+                            <div class="stat-label">分钟</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">连续学习</div>
+                            <div class="stat-value" id="detail-streak-days">0</div>
+                            <div class="stat-label">天</div>
+                        </div>
+                    </div>
+                    
+                    <div class="month-selector">
+                        <button id="detail-prev-month">上个月</button>
+                        <div class="month-display" id="detail-current-month">2023年11月</div>
+                        <button id="detail-next-month">下个月</button>
+                    </div>
+                    <div class="calendar-header">
+                        <div>日</div>
+                        <div>一</div>
+                        <div>二</div>
+                        <div>三</div>
+                        <div>四</div>
+                        <div>五</div>
+                        <div>六</div>
+                    </div>
+                    <div class="calendar" id="detail-calendar"></div>
+                    
+                    <h4>学习趋势</h4>
+                    <div class="chart-container">
+                        <canvas id="detail-trend-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div id="admin-trend-chart-container">
+                    <h4>用户学习趋势</h4>
+                    <div class="chart-container">
+                        <canvas id="admin-trend-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div id="total-study-time">
+                    <h4>用户学习总时长</h4>
+                    <div id="total-time-display"></div>
+                </div>
+                
+                <button id="admin-logout" style="background: #e74c3c; margin-top: 20px;">退出管理员</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">学习完成！打卡成功！</div>
+
+    <script>
+        // Supabase配置
+        const SUPABASE_URL = 'https://rcpssreclskyhpjvonrk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJjcHNzcmVjbHNreWhwanZvbnJrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MTk3NTIsImV4cCI6MjA3NzA5NTc1Mn0.fc7oSuXBwwLieto3CnS4XtWbt17YHkI0da9hbX4TTgo';
+        
+        // 初始化Supabase客户端
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // 全局变量
+        let timerInterval;
+        let remainingTime = 0;
+        let currentUser = null;
+        let isSoundEnabled = true;
+        let isVibrationEnabled = true;
+        let studyRecords = [];
+        let allUsersData = [];
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+        let detailCurrentMonth = new Date().getMonth();
+        let detailCurrentYear = new Date().getFullYear();
+        let selectedUser = null;
+        let selectedUserRecords = [];
+        let timerEndTime = 0; // 计时器结束的时间戳
+        let wakeLock = null; // 屏幕唤醒锁
+        
+        // DOM元素
+        const userNameInput = document.getElementById('user-name');
+        const studyTimeInput = document.getElementById('study-time');
+        const startStudyButton = document.getElementById('start-study');
+        const timerSection = document.getElementById('timer-section');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerStatus = document.getElementById('timer-status');
+        const cancelStudyButton = document.getElementById('cancel-study');
+        const calendarElement = document.getElementById('calendar');
+        const trendChartCanvas = document.getElementById('trend-chart');
+        const adminPasswordInput = document.getElementById('admin-password');
+        const adminLoginButton = document.getElementById('admin-login');
+        const adminPanel = document.getElementById('admin-panel');
+        const dateStartInput = document.getElementById('date-start');
+        const dateEndInput = document.getElementById('date-end');
+        const filterDataButton = document.getElementById('filter-data');
+        const adminTrendChartCanvas = document.getElementById('admin-trend-chart');
+        const totalTimeDisplay = document.getElementById('total-time-display');
+        const adminLogoutButton = document.getElementById('admin-logout');
+        const notification = document.getElementById('notification');
+        const soundToggle = document.getElementById('sound-toggle');
+        const vibrationToggle = document.getElementById('vibration-toggle');
+        const totalDaysElement = document.getElementById('total-days');
+        const totalHoursElement = document.getElementById('total-hours');
+        const streakDaysElement = document.getElementById('streak-days');
+        const prevMonthButton = document.getElementById('prev-month');
+        const nextMonthButton = document.getElementById('next-month');
+        const currentMonthDisplay = document.getElementById('current-month');
+        const userListElement = document.getElementById('user-list');
+        const userDetailView = document.getElementById('user-detail-view');
+        const backToUserListButton = document.getElementById('back-to-user-list');
+        const detailUserNameElement = document.getElementById('detail-user-name');
+        const detailTotalDaysElement = document.getElementById('detail-total-days');
+        const detailTotalHoursElement = document.getElementById('detail-total-hours');
+        const detailStreakDaysElement = document.getElementById('detail-streak-days');
+        const detailCalendarElement = document.getElementById('detail-calendar');
+        const detailTrendChartCanvas = document.getElementById('detail-trend-chart');
+        const detailPrevMonthButton = document.getElementById('detail-prev-month');
+        const detailNextMonthButton = document.getElementById('detail-next-month');
+        const detailCurrentMonthDisplay = document.getElementById('detail-current-month');
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期范围（最近30天）
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+            
+            dateStartInput.valueAsDate = startDate;
+            dateEndInput.valueAsDate = endDate;
+            
+            // 事件监听器
+            startStudyButton.addEventListener('click', startStudy);
+            cancelStudyButton.addEventListener('click', cancelStudy);
+            adminLoginButton.addEventListener('click', adminLogin);
+            filterDataButton.addEventListener('click', loadAdminData);
+            adminLogoutButton.addEventListener('click', adminLogout);
+            soundToggle.addEventListener('click', toggleSound);
+            vibrationToggle.addEventListener('click', toggleVibration);
+            prevMonthButton.addEventListener('click', () => changeMonth(-1));
+            nextMonthButton.addEventListener('click', () => changeMonth(1));
+            backToUserListButton.addEventListener('click', backToUserList);
+            detailPrevMonthButton.addEventListener('click', () => changeDetailMonth(-1));
+            detailNextMonthButton.addEventListener('click', () => changeDetailMonth(1));
+            
+            // 检查是否有缓存的用户
+            const cachedUser = localStorage.getItem('currentUser');
+            if (cachedUser) {
+                currentUser = cachedUser;
+                userNameInput.value = currentUser;
+                loadUserData();
+            }
+            
+            // 检查是否有正在进行的计时器
+            checkActiveTimer();
+            
+            // 初始化日历和图表
+            updateMonthDisplay();
+            renderCalendar();
+            initTrendChart();
+            
+            // 监听页面可见性变化
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            
+            // 监听页面关闭事件
+            window.addEventListener('beforeunload', handleBeforeUnload);
+        });
+        
+        // 处理页面可见性变化
+        function handleVisibilityChange() {
+            if (!document.hidden && timerSection && !timerSection.classList.contains('hidden')) {
+                // 页面重新可见，检查计时器状态
+                checkTimerStatus();
+            }
+        }
+        
+        // 处理页面关闭
+        function handleBeforeUnload() {
+            // 如果计时器正在运行，保存状态
+            if (timerSection && !timerSection.classList.contains('hidden')) {
+                const savedTimer = localStorage.getItem('activeTimer');
+                if (savedTimer) {
+                    const timerData = JSON.parse(savedTimer);
+                    timerData.endTime = timerEndTime;
+                    localStorage.setItem('activeTimer', JSON.stringify(timerData));
+                }
+            }
+        }
+        
+        // 检查是否有活动的计时器
+        function checkActiveTimer() {
+            const savedTimer = localStorage.getItem('activeTimer');
+            if (savedTimer) {
+                const timerData = JSON.parse(savedTimer);
+                const now = Date.now();
+                const endTime = timerData.endTime;
+                
+                if (endTime > now) {
+                    // 有未完成的计时器
+                    currentUser = timerData.userName;
+                    userNameInput.value = currentUser;
+                    remainingTime = Math.round((endTime - now) / 1000);
+                    
+                    // 恢复计时器显示
+                    timerSection.classList.remove('hidden');
+                    startStudyButton.disabled = true;
+                    updateTimerDisplay();
+                    
+                    // 开始计时器
+                    startTimer(remainingTime);
+                    
+                    // 添加背景计时器样式
+                    document.getElementById('user-section').classList.add('background-timer-active');
+                    timerStatus.textContent = '后台计时器运行中...';
+                    
+                    showNotification('恢复了之前的学习计时器', 'info');
+                } else {
+                    // 计时器已过期但未完成，自动完成
+                    handleStudyCompletion();
+                    localStorage.removeItem('activeTimer');
+                }
+            }
+        }
+        
+        // 检查计时器状态
+        function checkTimerStatus() {
+            if (timerEndTime > 0) {
+                const now = Date.now();
+                remainingTime = Math.max(0, Math.round((timerEndTime - now) / 1000));
+                
+                if (remainingTime <= 0) {
+                    handleStudyCompletion();
+                } else {
+                    updateTimerDisplay();
+                }
+            }
+        }
+        
+        // 开始学习
+        function startStudy() {
+            const userName = userNameInput.value.trim();
+            const studyTime = parseInt(studyTimeInput.value);
+            
+            if (!userName) {
+                showNotification('请输入您的姓名', 'error');
+                return;
+            }
+            
+            if (!studyTime || studyTime <= 0) {
+                showNotification('请输入有效的学习时长', 'error');
+                return;
+            }
+            
+            currentUser = userName;
+            localStorage.setItem('currentUser', userName);
+            
+            // 显示计时器
+            timerSection.classList.remove('hidden');
+            startStudyButton.disabled = true;
+            
+            // 开始倒计时
+            remainingTime = studyTime * 60; // 转换为秒
+            updateTimerDisplay();
+            
+            // 保存计时器状态到 localStorage
+            timerEndTime = Date.now() + remainingTime * 1000;
+            localStorage.setItem('activeTimer', JSON.stringify({
+                userName: currentUser,
+                studyTime: studyTime,
+                endTime: timerEndTime
+            }));
+            
+            // 开始计时器
+            startTimer(remainingTime);
+            
+            // 尝试获取屏幕唤醒锁
+            requestWakeLock();
+            
+            // 添加背景计时器样式
+            document.getElementById('user-section').classList.add('background-timer-active');
+            timerStatus.textContent = '计时器运行中（支持后台运行）...';
+            
+            showNotification('学习计时器已开始，支持后台运行和息屏计时', 'success');
+        }
+        
+        // 开始计时器
+        function startTimer(duration) {
+            // 清除现有计时器
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // 使用绝对时间计算剩余时间
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                remainingTime = Math.max(0, Math.round((timerEndTime - now) / 1000));
+                
+                updateTimerDisplay();
+                
+                if (remainingTime <= 0) {
+                    clearInterval(timerInterval);
+                    handleStudyCompletion();
+                }
+            }, 1000);
+        }
+        
+        // 请求屏幕唤醒锁
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    console.log('屏幕唤醒锁已激活');
+                    
+                    wakeLock.addEventListener('release', () => {
+                        console.log('屏幕唤醒锁已释放');
+                    });
+                }
+            } catch (err) {
+                console.log('无法获取屏幕唤醒锁:', err.message);
+            }
+        }
+        
+        // 释放屏幕唤醒锁
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release();
+                wakeLock = null;
+            }
+        }
+        
+        // 取消学习
+        function cancelStudy() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            timerSection.classList.add('hidden');
+            startStudyButton.disabled = false;
+            
+            // 移除保存的计时器状态
+            localStorage.removeItem('activeTimer');
+            
+            // 释放屏幕唤醒锁
+            releaseWakeLock();
+            
+            // 移除背景计时器样式
+            document.getElementById('user-section').classList.remove('background-timer-active');
+            
+            showNotification('已取消学习', 'info');
+        }
+        
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // 添加动画效果
+            if (remainingTime <= 10) {
+                timerDisplay.style.color = '#e74c3c';
+                timerDisplay.style.transform = 'scale(1.1)';
+            } else {
+                timerDisplay.style.color = '#e74c3c';
+                timerDisplay.style.transform = 'scale(1)';
+            }
+        }
+        
+        // 处理学习完成
+        async function handleStudyCompletion() {
+            const savedTimer = localStorage.getItem('activeTimer');
+            let studyTime = 0;
+            
+            if (savedTimer) {
+                const timerData = JSON.parse(savedTimer);
+                studyTime = timerData.studyTime;
+            }
+            
+            // 保存学习记录到Supabase
+            const today = new Date().toISOString().split('T')[0];
+            
+            try {
+                const { data, error } = await supabase
+                    .from('study_records')
+                    .insert([
+                        { 
+                            user_name: currentUser, 
+                            date: today, 
+                            study_minutes: studyTime 
+                        }
+                    ]);
+                
+                if (error) {
+                    console.error('保存学习记录失败:', error);
+                    showNotification('保存学习记录失败，请重试', 'error');
+                    return;
+                }
+                
+                // 播放提示音
+                if (isSoundEnabled) {
+                    playCompletionSound();
+                }
+                
+                // 触发振动
+                if (isVibrationEnabled && 'vibrate' in navigator) {
+                    navigator.vibrate([200, 100, 200, 100, 200]);
+                }
+                
+                // 显示通知
+                showNotification('学习完成！打卡成功！', 'success');
+                
+                // 重新加载用户数据
+                await loadUserData();
+                
+            } catch (error) {
+                console.error('保存学习记录时出错:', error);
+                showNotification('网络错误，请检查连接', 'error');
+            }
+            
+            // 重置界面
+            setTimeout(function() {
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                
+                timerSection.classList.add('hidden');
+                startStudyButton.disabled = false;
+                timerDisplay.style.color = '#e74c3c';
+                timerDisplay.style.transform = 'scale(1)';
+                
+                // 移除保存的计时器状态
+                localStorage.removeItem('activeTimer');
+                
+                // 释放屏幕唤醒锁
+                releaseWakeLock();
+                
+                // 移除背景计时器样式
+                document.getElementById('user-section').classList.remove('background-timer-active');
+            }, 3000);
+        }
+        
+        // 播放完成提示音 - 增强版
+        function playCompletionSound() {
+            try {
+                // 创建音频上下文
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                
+                // 创建振荡器
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 800;
+                gainNode.gain.value = 0.1;
+                
+                // 创建声音模式（滴滴声）
+                const beep = () => {
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+                };
+                
+                // 播放5次滴滴声
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(beep, i * 500);
+                }
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 3);
+                
+                // 同时使用 HTML5 Audio API 作为备用
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+                    audio.volume = 0.3;
+                    audio.play().catch(e => console.log('HTML5 Audio fallback failed:', e));
+                } catch (e) {
+                    console.log('HTML5 Audio not supported');
+                }
+            } catch (error) {
+                console.error('无法播放提示音:', error);
+            }
+        }
+        
+        // 切换声音设置
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            if (isSoundEnabled) {
+                soundToggle.textContent = '开启';
+                soundToggle.classList.add('active');
+            } else {
+                soundToggle.textContent = '关闭';
+                soundToggle.classList.remove('active');
+            }
+        }
+        
+        // 切换振动设置
+        function toggleVibration() {
+            isVibrationEnabled = !isVibrationEnabled;
+            if (isVibrationEnabled) {
+                vibrationToggle.textContent = '开启';
+                vibrationToggle.classList.add('active');
+            } else {
+                vibrationToggle.textContent = '关闭';
+                vibrationToggle.classList.remove('active');
+            }
+        }
+        
+        // 加载用户数据
+        async function loadUserData() {
+            if (!currentUser) {
+                return;
+            }
+            
+            try {
+                // 从Supabase获取用户数据
+                const { data, error } = await supabase
+                    .from('study_records')
+                    .select('*')
+                    .eq('user_name', currentUser)
+                    .order('date', { ascending: true });
+                
+                if (error) {
+                    console.error('获取学习记录失败:', error);
+                    showNotification('获取学习记录失败', 'error');
+                    return;
+                }
+                
+                studyRecords = data || [];
+                
+                // 更新统计信息
+                updateUserStats();
+                
+                // 渲染日历
+                renderCalendar();
+                
+                // 更新趋势图
+                updateTrendChart();
+                
+            } catch (error) {
+                console.error('获取学习记录时出错:', error);
+                showNotification('网络错误，请检查连接', 'error');
+            }
+        }
+        
+        // 更新用户统计
+        function updateUserStats() {
+            const userRecords = studyRecords || [];
+            
+            // 总学习天数 - 按日期去重
+            const uniqueDates = [...new Set(userRecords.map(record => record.date))];
+            const totalDays = uniqueDates.length;
+            totalDaysElement.textContent = totalDays;
+            
+            // 总学习时长（分钟）
+            const totalMinutes = userRecords.reduce((sum, record) => sum + record.study_minutes, 0);
+            totalHoursElement.textContent = totalMinutes;
+            
+            // 连续学习天数 - 修复后的算法
+            const streak = calculateStreak(userRecords);
+            streakDaysElement.textContent = streak;
+        }
+        
+        // 计算连续学习天数 - 修复后的算法
+        function calculateStreak(records) {
+            if (records.length === 0) return 0;
+            
+            // 获取所有学习日期并去重，然后按日期排序
+            const uniqueDates = [...new Set(records.map(r => r.date))];
+            
+            // 将日期字符串转换为时间戳，避免时区问题
+            const dateTimestamps = uniqueDates.map(dateStr => {
+                const parts = dateStr.split('-');
+                // 使用本地时区创建日期
+                return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
+            });
+            
+            // 按时间戳排序（从近到远）
+            dateTimestamps.sort((a, b) => b - a);
+            
+            // 获取今天的日期（本地时区）
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayTimestamp = today.getTime();
+            
+            // 检查今天是否学习
+            const learnedToday = dateTimestamps.some(timestamp => 
+                timestamp === todayTimestamp
+            );
+            
+            let streak = 0;
+            let currentDate = new Date(today);
+            
+            // 如果今天学习了，从今天开始计算
+            if (learnedToday) {
+                streak = 1;
+                currentDate.setDate(currentDate.getDate() - 1);
+            } else {
+                // 如果今天没学习，从昨天开始计算
+                currentDate.setDate(currentDate.getDate() - 1);
+            }
+            
+            // 检查连续天数
+            while (dateTimestamps.includes(currentDate.getTime())) {
+                streak++;
+                currentDate.setDate(currentDate.getDate() - 1);
+            }
+            
+            return streak;
+        }
+        
+        // 更改月份
+        function changeMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            updateMonthDisplay();
+            renderCalendar();
+        }
+        
+        // 更新月份显示
+        function updateMonthDisplay() {
+            currentMonthDisplay.textContent = `${currentYear}年${currentMonth + 1}月`;
+        }
+        
+        // 渲染日历
+        function renderCalendar() {
+            calendarElement.innerHTML = '';
+            
+            // 获取当月第一天是星期几
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            
+            // 获取当月天数
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            
+            // 添加上个月的空白天数
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day';
+                calendarElement.appendChild(emptyDay);
+            }
+            
+            // 添加当月天数
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                
+                // 检查这一天是否有学习记录
+                if (studyRecords && studyRecords.length > 0) {
+                    const hasRecord = studyRecords.some(record => record.date === dateStr);
+                    if (hasRecord) {
+                        dayElement.classList.add('checked');
+                        dayElement.innerHTML = `<div class="calendar-date">${day}</div><div class="calendar-check">✓</div>`;
+                    } else {
+                        dayElement.innerHTML = `<div class="calendar-date">${day}</div>`;
+                    }
+                } else {
+                    dayElement.innerHTML = `<div class="calendar-date">${day}</div>`;
+                }
+                
+                calendarElement.appendChild(dayElement);
+            }
+        }
+        
+        // 初始化趋势图
+        function initTrendChart() {
+            const ctx = trendChartCanvas.getContext('2d');
+            window.trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '每日学习时长（分钟）',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '学习时长（分钟）'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日期'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `学习时长: ${context.parsed.y} 分钟`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 更新趋势图 - 修复后的版本
+        function updateTrendChart() {
+            if (!studyRecords || studyRecords.length === 0) {
+                return;
+            }
+            
+            // 按日期聚合学习时长（同一天可能有多次学习记录）
+            const dailyStudy = {};
+            studyRecords.forEach(record => {
+                if (dailyStudy[record.date]) {
+                    dailyStudy[record.date] += record.study_minutes;
+                } else {
+                    dailyStudy[record.date] = record.study_minutes;
+                }
+            });
+            
+            // 转换为数组并排序
+            const sortedRecords = Object.keys(dailyStudy)
+                .map(date => ({ date, minutes: dailyStudy[date] }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // 获取最近14天的数据
+            const recentRecords = sortedRecords.slice(-14);
+            
+            const labels = recentRecords.map(record => {
+                const date = new Date(record.date);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            });
+            
+            const data = recentRecords.map(record => record.minutes);
+            
+            window.trendChart.data.labels = labels;
+            window.trendChart.data.datasets[0].data = data;
+            window.trendChart.update();
+        }
+        
+        // 管理员登录
+        function adminLogin() {
+            const password = adminPasswordInput.value;
+            
+            if (password === '000000') {
+                adminPanel.classList.remove('hidden');
+                adminPasswordInput.value = '';
+                loadAdminData();
+                showNotification('管理员登录成功', 'success');
+            } else {
+                showNotification('密码错误', 'error');
+            }
+        }
+        
+        // 管理员退出
+        function adminLogout() {
+            adminPanel.classList.add('hidden');
+            userDetailView.classList.add('hidden');
+            showNotification('已退出管理员模式', 'info');
+        }
+        
+        // 加载管理员数据
+        async function loadAdminData() {
+            const startDate = dateStartInput.value;
+            const endDate = dateEndInput.value;
+            
+            try {
+                // 从Supabase获取所有用户数据
+                const { data, error } = await supabase
+                    .from('study_records')
+                    .select('*')
+                    .gte('date', startDate)
+                    .lte('date', endDate)
+                    .order('date', { ascending: true });
+                
+                if (error) {
+                    console.error('获取所有用户数据失败:', error);
+                    showNotification('获取数据失败', 'error');
+                    return;
+                }
+                
+                allUsersData = data || [];
+                
+                // 显示用户列表
+                displayUserList();
+                
+                // 更新管理员趋势图
+                updateAdminTrendChart(startDate, endDate);
+                
+                // 显示总学习时长
+                displayTotalStudyTime(startDate, endDate);
+                
+            } catch (error) {
+                console.error('获取所有用户数据时出错:', error);
+                showNotification('网络错误，请检查连接', 'error');
+            }
+        }
+        
+        // 显示用户列表
+        function displayUserList() {
+            // 获取所有用户
+            const users = [...new Set(allUsersData.map(record => record.user_name))];
+            
+            userListElement.innerHTML = '<h4>用户列表</h4>';
+            
+            if (users.length === 0) {
+                userListElement.innerHTML += '<p>暂无用户数据</p>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                
+                // 计算该用户的学习统计
+                const userRecords = allUsersData.filter(record => record.user_name === user);
+                const uniqueDates = [...new Set(userRecords.map(record => record.date))];
+                const totalDays = uniqueDates.length;
+                const totalMinutes = userRecords.reduce((sum, record) => sum + record.study_minutes, 0);
+                
+                userItem.innerHTML = `
+                    <div>
+                        <strong>${user}</strong>
+                        <div class="user-details">
+                            学习天数: ${totalDays}天 | 总时长: ${totalMinutes}分钟
+                        </div>
+                    </div>
+                    <button class="delete-user" data-user="${user}">删除用户</button>
+                `;
+                
+                userListElement.appendChild(userItem);
+                
+                // 添加点击事件查看用户详情
+                userItem.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('delete-user')) {
+                        showUserDetail(user);
+                    }
+                });
+            });
+            
+            // 添加删除用户的事件监听器
+            document.querySelectorAll('.delete-user').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const userName = this.getAttribute('data-user');
+                    deleteUser(userName);
+                });
+            });
+        }
+        
+        // 显示用户详情
+        async function showUserDetail(userName) {
+            selectedUser = userName;
+            detailUserNameElement.textContent = `${userName} 的学习详情`;
+            
+            try {
+                // 获取该用户的所有学习记录
+                const { data, error } = await supabase
+                    .from('study_records')
+                    .select('*')
+                    .eq('user_name', userName)
+                    .order('date', { ascending: true });
+                
+                if (error) {
+                    console.error('获取用户学习记录失败:', error);
+                    showNotification('获取用户学习记录失败', 'error');
+                    return;
+                }
+                
+                selectedUserRecords = data || [];
+                
+                // 更新用户详情统计
+                updateUserDetailStats();
+                
+                // 渲染用户详情日历
+                renderDetailCalendar();
+                
+                // 更新用户详情趋势图
+                updateDetailTrendChart();
+                
+                // 显示用户详情视图
+                userListElement.style.display = 'none';
+                userDetailView.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('获取用户学习记录时出错:', error);
+                showNotification('网络错误，请检查连接', 'error');
+            }
+        }
+        
+        // 更新用户详情统计
+        function updateUserDetailStats() {
+            const userRecords = selectedUserRecords || [];
+            
+            // 总学习天数 - 按日期去重
+            const uniqueDates = [...new Set(userRecords.map(record => record.date))];
+            const totalDays = uniqueDates.length;
+            detailTotalDaysElement.textContent = totalDays;
+            
+            // 总学习时长（分钟）
+            const totalMinutes = userRecords.reduce((sum, record) => sum + record.study_minutes, 0);
+            detailTotalHoursElement.textContent = totalMinutes;
+            
+            // 连续学习天数
+            const streak = calculateStreak(userRecords);
+            detailStreakDaysElement.textContent = streak;
+        }
+        
+        // 更改用户详情月份
+        function changeDetailMonth(direction) {
+            detailCurrentMonth += direction;
+            if (detailCurrentMonth < 0) {
+                detailCurrentMonth = 11;
+                detailCurrentYear--;
+            } else if (detailCurrentMonth > 11) {
+                detailCurrentMonth = 0;
+                detailCurrentYear++;
+            }
+            updateDetailMonthDisplay();
+            renderDetailCalendar();
+        }
+        
+        // 更新用户详情月份显示
+        function updateDetailMonthDisplay() {
+            detailCurrentMonthDisplay.textContent = `${detailCurrentYear}年${detailCurrentMonth + 1}月`;
+        }
+        
+        // 渲染用户详情日历
+        function renderDetailCalendar() {
+            detailCalendarElement.innerHTML = '';
+            
+            // 获取当月第一天是星期几
+            const firstDay = new Date(detailCurrentYear, detailCurrentMonth, 1).getDay();
+            
+            // 获取当月天数
+            const daysInMonth = new Date(detailCurrentYear, detailCurrentMonth + 1, 0).getDate();
+            
+            // 添加上个月的空白天数
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day';
+                detailCalendarElement.appendChild(emptyDay);
+            }
+            
+            // 添加当月天数
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                const dateStr = `${detailCurrentYear}-${(detailCurrentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+                
+                // 检查这一天是否有学习记录
+                if (selectedUserRecords && selectedUserRecords.length > 0) {
+                    const hasRecord = selectedUserRecords.some(record => record.date === dateStr);
+                    if (hasRecord) {
+                        dayElement.classList.add('checked');
+                        dayElement.innerHTML = `<div class="calendar-date">${day}</div><div class="calendar-check">✓</div>`;
+                    } else {
+                        dayElement.innerHTML = `<div class="calendar-date">${day}</div>`;
+                    }
+                } else {
+                    dayElement.innerHTML = `<div class="calendar-date">${day}</div>`;
+                }
+                
+                detailCalendarElement.appendChild(dayElement);
+            }
+        }
+        
+        // 更新用户详情趋势图 - 修复后的版本
+        function updateDetailTrendChart() {
+            const ctx = detailTrendChartCanvas.getContext('2d');
+            
+            // 如果图表已存在，销毁它
+            if (window.detailTrendChart) {
+                window.detailTrendChart.destroy();
+            }
+            
+            if (!selectedUserRecords || selectedUserRecords.length === 0) {
+                return;
+            }
+            
+            // 按日期聚合学习时长（同一天可能有多次学习记录）
+            const dailyStudy = {};
+            selectedUserRecords.forEach(record => {
+                if (dailyStudy[record.date]) {
+                    dailyStudy[record.date] += record.study_minutes;
+                } else {
+                    dailyStudy[record.date] = record.study_minutes;
+                }
+            });
+            
+            // 转换为数组并排序
+            const sortedRecords = Object.keys(dailyStudy)
+                .map(date => ({ date, minutes: dailyStudy[date] }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // 获取最近14天的数据
+            const recentRecords = sortedRecords.slice(-14);
+            
+            const labels = recentRecords.map(record => {
+                const date = new Date(record.date);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+            });
+            
+            const data = recentRecords.map(record => record.minutes);
+            
+            window.detailTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '每日学习时长（分钟）',
+                        data: data,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '学习时长（分钟）'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日期'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `学习时长: ${context.parsed.y} 分钟`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 返回用户列表
+        function backToUserList() {
+            userDetailView.classList.add('hidden');
+            userListElement.style.display = 'block';
+        }
+        
+        // 删除用户
+        async function deleteUser(userName) {
+            if (!confirm(`确定要删除用户 "${userName}" 的所有学习记录吗？此操作不可撤销。`)) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('study_records')
+                    .delete()
+                    .eq('user_name', userName);
+                
+                if (error) {
+                    console.error('删除用户失败:', error);
+                    showNotification('删除用户失败', 'error');
+                    return;
+                }
+                
+                showNotification(`已删除用户 "${userName}" 的所有记录`, 'success');
+                
+                // 重新加载管理员数据
+                loadAdminData();
+                
+            } catch (error) {
+                console.error('删除用户时出错:', error);
+                showNotification('网络错误，请检查连接', 'error');
+            }
+        }
+        
+        // 更新管理员趋势图 - 修复后的版本
+        function updateAdminTrendChart(startDate, endDate) {
+            const ctx = adminTrendChartCanvas.getContext('2d');
+            
+            // 如果图表已存在，销毁它
+            if (window.adminTrendChart) {
+                window.adminTrendChart.destroy();
+            }
+            
+            // 按日期分组计算总学习时长
+            const dailyData = {};
+            
+            allUsersData.forEach(record => {
+                if (!dailyData[record.date]) {
+                    dailyData[record.date] = 0;
+                }
+                dailyData[record.date] += record.study_minutes;
+            });
+            
+            // 转换为图表数据
+            const labels = Object.keys(dailyData).sort();
+            const data = labels.map(date => dailyData[date]);
+            
+            const formattedLabels = labels.map(date => {
+                const d = new Date(date);
+                return `${d.getMonth() + 1}/${d.getDate()}`;
+            });
+            
+            window.adminTrendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: formattedLabels,
+                    datasets: [{
+                        label: '所有用户总学习时长（分钟）',
+                        data: data,
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '学习时长（分钟）'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '日期'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `学习时长: ${context.parsed.y} 分钟`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 显示总学习时长
+        function displayTotalStudyTime(startDate, endDate) {
+            let totalMinutes = 0;
+            const userSet = new Set();
+            
+            allUsersData.forEach(record => {
+                totalMinutes += record.study_minutes;
+                userSet.add(record.user_name);
+            });
+            
+            const userCount = userSet.size;
+            totalTimeDisplay.innerHTML = `
+                <p>用户数量: ${userCount}</p>
+                <p>总学习时长: ${totalMinutes} 分钟</p>
+                <p>平均每人: ${userCount > 0 ? Math.round(totalMinutes / userCount) : 0} 分钟</p>
+            `;
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'success') {
+            notification.textContent = message;
+            
+            // 设置通知颜色
+            if (type === 'error') {
+                notification.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
+            } else if (type === 'info') {
+                notification.style.background = 'linear-gradient(135deg, #3498db, #2980b9)';
+            } else {
+                notification.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+            }
+            
+            notification.classList.add('show');
+            
+            // 3秒后隐藏通知
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
