@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>学习打卡应用</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     <style>
         /* 原有CSS样式保持不变 */
         * {
@@ -521,9 +521,7 @@
     <div class="container">
         <h1>学习打卡应用</h1>
         
-        <!-- 用户打卡区域 -->
         <div class="section" id="user-section">
-            <!-- 删除"开始学习"标题 -->
             <div class="form-group">
                 <label for="user-name">姓名</label>
                 <input type="text" id="user-name" placeholder="请输入您的姓名">
@@ -552,11 +550,9 @@
             </div>
         </div>
         
-        <!-- 学习统计 -->
         <div class="section">
             <h2>学习统计</h2>
             
-            <!-- 新增：用户端日期范围选择 -->
             <div class="date-range-selector">
                 <input type="date" id="user-date-start">
                 <span>至</span>
@@ -582,7 +578,6 @@
                 </div>
             </div>
             
-            <!-- 将总体学习趋势图放在总体统计后面 -->
             <div id="trend-chart-container">
                 <h3>用户学习趋势</h3>
                 <div class="chart-container">
@@ -591,7 +586,6 @@
             </div>
         </div>
         
-        <!-- 学习记录区域 -->
         <div class="section">
             <h2>学习记录</h2>
             <div class="month-selector">
@@ -613,7 +607,6 @@
             </div>
         </div>
         
-        <!-- 管理员区域 -->
         <div class="section admin-section">
             <h2>管理员功能</h2>
             <div class="form-group">
@@ -631,7 +624,6 @@
                     <button id="filter-data">筛选数据</button>
                 </div>
                 
-                <!-- 总体统计 -->
                 <div class="total-stats">
                     <h4>总体统计</h4>
                     <div class="user-stats">
@@ -652,7 +644,6 @@
                     </div>
                 </div>
                 
-                <!-- 总体学习趋势 -->
                 <div id="admin-trend-chart-container">
                     <h4>总体学习趋势</h4>
                     <div class="chart-container">
@@ -660,11 +651,9 @@
                     </div>
                 </div>
                 
-                <!-- 新增：分组管理 -->
                 <div class="group-management">
                     <h4>分组管理</h4>
                     
-                    <!-- 分组选择器 -->
                     <div class="group-selector">
                         <button id="group-all" class="group-button active" data-group="all">全部</button>
                         <button id="group-children" class="group-button" data-group="儿童班">儿童班</button>
@@ -673,19 +662,14 @@
                         <button id="group-ungrouped" class="group-button" data-group="未分组">未分组</button>
                     </div>
                     
-                    <!-- 分组统计 -->
                     <div class="group-stats" id="group-stats">
-                        <!-- 分组统计将在这里动态生成 -->
-                    </div>
+                        </div>
                     
-                    <!-- 用户分组管理 -->
                     <h5>用户分组管理</h5>
                     <div class="user-list" id="user-list">
-                        <!-- 用户列表将在这里动态生成 -->
-                    </div>
+                        </div>
                 </div>
                 
-                <!-- 用户详情视图 -->
                 <div id="user-detail-view" class="user-detail-view hidden">
                     <button id="back-to-user-list" class="back-button">返回用户列表</button>
                     <h4 id="detail-user-name">用户详情</h4>
@@ -729,7 +713,6 @@
                     </div>
                 </div>
                 
-                <!-- 分组详情视图 -->
                 <div id="group-detail-view" class="group-detail-view hidden">
                     <button id="back-to-group-list" class="back-button">返回分组列表</button>
                     <h4 id="detail-group-name">分组详情</h4>
@@ -756,7 +739,7 @@
                         <canvas id="group-trend-chart"></canvas>
                     </div>
                 </div>
-                
+
                 <button id="admin-logout" style="background: #e74c3c; margin-top: 20px;">退出管理员</button>
             </div>
         </div>
@@ -837,11 +820,9 @@
         const userDateEndInput = document.getElementById('user-date-end');
         const userFilterDataButton = document.getElementById('user-filter-data');
         const userResetDateButton = document.getElementById('user-reset-date');
-        
         // 新增DOM元素：分组管理
         const groupButtons = document.querySelectorAll('.group-button');
         const groupStatsElement = document.getElementById('group-stats');
-        
         // 新增DOM元素：总体统计
         const totalUsersElement = document.getElementById('total-users');
         const totalStudyTimeElement = document.getElementById('total-study-time');
@@ -882,11 +863,9 @@
             detailPrevMonthButton.addEventListener('click', () => changeDetailMonth(-1));
             detailNextMonthButton.addEventListener('click', () => changeDetailMonth(1));
             backToGroupListButton.addEventListener('click', backToGroupList);
-            
             // 新增事件监听器：用户端日期筛选
             userFilterDataButton.addEventListener('click', loadUserDataWithDateRange);
             userResetDateButton.addEventListener('click', resetUserDateRange);
-            
             // 新增事件监听器：分组选择
             groupButtons.forEach(button => {
                 button.addEventListener('click', function() {
@@ -900,7 +879,6 @@
                     loadAdminData();
                 });
             });
-            
             // 检查是否有缓存的用户
             const cachedUser = localStorage.getItem('currentUser');
             if (cachedUser) {
@@ -911,29 +889,23 @@
             
             // 检查是否有正在进行的计时器
             checkActiveTimer();
-            
             // 初始化日历和图表
             updateMonthDisplay();
             renderCalendar();
             initTrendChart();
-            
             // 加载用户分组数据
             loadUserGroups();
-            
             // 监听页面可见性变化
             document.addEventListener('visibilitychange', handleVisibilityChange);
-            
             // 监听页面关闭事件
             window.addEventListener('beforeunload', handleBeforeUnload);
         });
-        
         // 从Supabase加载用户分组数据
         async function loadUserGroups() {
             try {
                 const { data, error } = await supabase
                     .from('user_groups')
                     .select('*');
-                
                 if (error) {
                     console.error('加载用户分组失败:', error);
                     return;
@@ -944,7 +916,6 @@
                 data.forEach(item => {
                     userGroups[item.user_name] = item.group_name;
                 });
-                
             } catch (error) {
                 console.error('加载用户分组时出错:', error);
             }
@@ -984,7 +955,6 @@
                     currentUser = timerData.userName;
                     userNameInput.value = currentUser;
                     remainingTime = Math.round((endTime - now) / 1000);
-                    
                     // 恢复计时器显示
                     timerSection.classList.remove('hidden');
                     startStudyButton.disabled = true;
@@ -992,7 +962,6 @@
                     
                     // 开始计时器
                     startTimer(remainingTime);
-                    
                     // 添加背景计时器样式
                     document.getElementById('user-section').classList.add('background-timer-active');
                     timerStatus.textContent = '后台计时器运行中...';
@@ -1041,11 +1010,10 @@
             // 显示计时器
             timerSection.classList.remove('hidden');
             startStudyButton.disabled = true;
-            
             // 开始倒计时
-            remainingTime = studyTime * 60; // 转换为秒
+            remainingTime = studyTime * 60;
+            // 转换为秒
             updateTimerDisplay();
-            
             // 保存计时器状态到 localStorage
             timerEndTime = Date.now() + remainingTime * 1000;
             localStorage.setItem('activeTimer', JSON.stringify({
@@ -1053,13 +1021,10 @@
                 studyTime: studyTime,
                 endTime: timerEndTime
             }));
-            
             // 开始计时器
             startTimer(remainingTime);
-            
             // 尝试获取屏幕唤醒锁
             requestWakeLock();
-            
             // 添加背景计时器样式
             document.getElementById('user-section').classList.add('background-timer-active');
             timerStatus.textContent = '计时器运行中（支持后台运行）...';
@@ -1124,10 +1089,8 @@
             
             // 移除保存的计时器状态
             localStorage.removeItem('activeTimer');
-            
             // 释放屏幕唤醒锁
             releaseWakeLock();
-            
             // 移除背景计时器样式
             document.getElementById('user-section').classList.remove('background-timer-active');
             
@@ -1139,7 +1102,6 @@
             const minutes = Math.floor(remainingTime / 60);
             const seconds = remainingTime % 60;
             timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
             // 添加动画效果
             if (remainingTime <= 10) {
                 timerDisplay.style.color = '#e74c3c';
@@ -1162,7 +1124,6 @@
             
             // 保存学习记录到Supabase
             const today = new Date().toISOString().split('T')[0];
-            
             try {
                 const { data, error } = await supabase
                     .from('study_records')
@@ -1173,7 +1134,6 @@
                             study_minutes: studyTime 
                         }
                     ]);
-                
                 if (error) {
                     console.error('保存学习记录失败:', error);
                     showNotification('保存学习记录失败，请重试', 'error');
@@ -1192,10 +1152,8 @@
                 
                 // 显示通知
                 showNotification('学习完成！打卡成功！', 'success');
-                
                 // 重新加载用户数据
                 await loadUserData();
-                
             } catch (error) {
                 console.error('保存学习记录时出错:', error);
                 showNotification('网络错误，请检查连接', 'error');
@@ -1211,12 +1169,14 @@
                 timerSection.classList.add('hidden');
                 startStudyButton.disabled = false;
                 timerDisplay.style.color = '#e74c3c';
+                
                 timerDisplay.style.transform = 'scale(1)';
                 
                 // 移除保存的计时器状态
                 localStorage.removeItem('activeTimer');
                 
                 // 释放屏幕唤醒锁
+                
                 releaseWakeLock();
                 
                 // 移除背景计时器样式
@@ -1228,7 +1188,8 @@
         function playCompletionSound() {
             try {
                 // 创建音频上下文
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const AudioContext = window.AudioContext ||
+                window.webkitAudioContext;
                 const audioContext = new AudioContext();
                 
                 // 创建振荡器
@@ -1241,7 +1202,6 @@
                 oscillator.type = 'sine';
                 oscillator.frequency.value = 800;
                 gainNode.gain.value = 0.1;
-                
                 // 创建声音模式（滴滴声）
                 const beep = () => {
                     gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
@@ -1316,7 +1276,6 @@
                 }
                 
                 const { data, error } = await query.order('date', { ascending: true });
-                
                 if (error) {
                     console.error('获取学习记录失败:', error);
                     showNotification('获取学习记录失败', 'error');
@@ -1327,13 +1286,10 @@
                 
                 // 更新统计信息
                 updateUserStats();
-                
                 // 渲染日历
                 renderCalendar();
-                
                 // 更新趋势图
                 updateTrendChart();
-                
             } catch (error) {
                 console.error('获取学习记录时出错:', error);
                 showNotification('网络错误，请检查连接', 'error');
@@ -1348,7 +1304,6 @@
             
             userDateStartInput.valueAsDate = startDate;
             userDateEndInput.valueAsDate = endDate;
-            
             // 重新加载数据
             loadUserDataWithDateRange();
         }
@@ -1379,20 +1334,16 @@
         // 计算连续学习天数 - 修复后的算法
         function calculateStreak(records) {
             if (records.length === 0) return 0;
-            
             // 获取所有学习日期并去重，然后按日期排序
             const uniqueDates = [...new Set(records.map(r => r.date))];
-            
             // 将日期字符串转换为时间戳，避免时区问题
             const dateTimestamps = uniqueDates.map(dateStr => {
                 const parts = dateStr.split('-');
                 // 使用本地时区创建日期
                 return new Date(parts[0], parts[1] - 1, parts[2]).getTime();
             });
-            
             // 按时间戳排序（从近到远）
             dateTimestamps.sort((a, b) => b - a);
-            
             // 获取今天的日期（本地时区）
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -1402,7 +1353,6 @@
             const learnedToday = dateTimestamps.some(timestamp => 
                 timestamp === todayTimestamp
             );
-            
             let streak = 0;
             let currentDate = new Date(today);
             
@@ -1446,13 +1396,10 @@
         // 渲染日历
         function renderCalendar() {
             calendarElement.innerHTML = '';
-            
             // 获取当月第一天是星期几
             const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-            
             // 获取当月天数
             const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-            
             // 添加上个月的空白天数
             for (let i = 0; i < firstDay; i++) {
                 const emptyDay = document.createElement('div');
@@ -1466,7 +1413,6 @@
                 dayElement.className = 'calendar-day';
                 
                 const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                
                 // 检查这一天是否有学习记录
                 if (studyRecords && studyRecords.length > 0) {
                     const hasRecord = studyRecords.some(record => record.date === dateStr);
@@ -1541,7 +1487,8 @@
                 
                 const endDate = new Date();
                 const startDate = new Date();
-                startDate.setDate(startDate.getDate() - 13); // 最近14天
+                startDate.setDate(startDate.getDate() - 13);
+                // 最近14天
                 
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
@@ -1564,14 +1511,12 @@
                     dailyStudy[record.date] = record.study_minutes;
                 }
             });
-            
             // 获取所有日期的范围
             const allDates = Object.keys(dailyStudy);
             if (allDates.length === 0) return;
             
             // 排序日期
             allDates.sort((a, b) => new Date(a) - new Date(b));
-            
             // 获取开始和结束日期
             const startDate = new Date(allDates[0]);
             const endDate = new Date(allDates[allDates.length - 1]);
@@ -1589,12 +1534,10 @@
             const labels = dateArray.map(date => {
                 return `${date.getMonth() + 1}/${date.getDate()}`;
             });
-            
             const data = dateArray.map(date => {
                 const dateStr = date.toISOString().split('T')[0];
                 return dailyStudy[dateStr] || 0;
             });
-            
             window.trendChart.data.labels = labels;
             window.trendChart.data.datasets[0].data = data;
             window.trendChart.update();
@@ -1603,7 +1546,6 @@
         // 管理员登录
         function adminLogin() {
             const password = adminPasswordInput.value;
-            
             if (password === '000000') {
                 adminPanel.classList.remove('hidden');
                 adminPasswordInput.value = '';
@@ -1632,7 +1574,6 @@
                 let query = supabase
                     .from('study_records')
                     .select('*');
-                
                 // 添加日期范围筛选
                 if (startDate && endDate) {
                     query = query
@@ -1641,7 +1582,6 @@
                 }
                 
                 const { data, error } = await query.order('date', { ascending: true });
-                
                 if (error) {
                     console.error('获取所有用户数据失败:', error);
                     showNotification('获取数据失败', 'error');
@@ -1652,16 +1592,12 @@
                 
                 // 更新总体统计
                 updateTotalStats();
-                
                 // 显示分组统计
                 displayGroupStats();
-                
                 // 显示用户列表（根据当前分组筛选）
                 displayUserList();
-                
                 // 更新管理员趋势图
                 updateAdminTrendChart(startDate, endDate);
-                
             } catch (error) {
                 console.error('获取所有用户数据时出错:', error);
                 showNotification('网络错误，请检查连接', 'error');
@@ -1676,9 +1612,9 @@
             
             // 计算总学习时长
             const totalMinutes = allUsersData.reduce((sum, record) => sum + record.study_minutes, 0);
-            
             // 计算平均学习时长
-            const avgMinutes = userCount > 0 ? Math.round(totalMinutes / userCount) : 0;
+            const avgMinutes = userCount > 0 ?
+            Math.round(totalMinutes / userCount) : 0;
             
             // 更新显示
             totalUsersElement.textContent = userCount;
@@ -1694,17 +1630,14 @@
                 '成人班': { users: new Set(), totalMinutes: 0, totalDays: 0 },
                 '未分组': { users: new Set(), totalMinutes: 0, totalDays: 0 }
             };
-            
             // 获取所有用户
             const allUsers = [...new Set(allUsersData.map(record => record.user_name))];
-            
             // 计算每个分组的数据
             allUsersData.forEach(record => {
                 const userGroup = userGroups[record.user_name] || '未分组';
                 groups[userGroup].users.add(record.user_name);
                 groups[userGroup].totalMinutes += record.study_minutes;
             });
-            
             // 计算每个分组的学习天数
             Object.keys(groups).forEach(group => {
                 const groupUsers = Array.from(groups[group].users);
@@ -1718,16 +1651,15 @@
                 
                 groups[group].totalDays = userDates.size;
             });
-            
             // 渲染分组统计
             groupStatsElement.innerHTML = '';
-            
             Object.keys(groups).forEach(group => {
                 const groupData = groups[group];
                 const userCount = groupData.users.size;
                 const totalMinutes = groupData.totalMinutes;
                 const totalDays = groupData.totalDays;
-                const avgMinutes = userCount > 0 ? Math.round(totalMinutes / userCount) : 0;
+                const avgMinutes = userCount > 0 
+                ? Math.round(totalMinutes / userCount) : 0;
                 
                 const groupCard = document.createElement('div');
                 groupCard.className = 'group-stat-card';
@@ -1767,13 +1699,10 @@
             
             // 获取该分组的学习记录
             const groupRecords = allUsersData.filter(record => groupUsers.includes(record.user_name));
-            
             // 更新分组详情统计
             updateGroupDetailStats(groupUsers, groupRecords);
-            
             // 更新分组趋势图
             updateGroupTrendChart(groupRecords);
-            
             // 显示分组详情视图
             document.querySelector('.group-management').style.display = 'none';
             groupDetailView.classList.remove('hidden');
@@ -1783,7 +1712,8 @@
         function updateGroupDetailStats(users, records) {
             const userCount = users.length;
             const totalMinutes = records.reduce((sum, record) => sum + record.study_minutes, 0);
-            const avgMinutes = userCount > 0 ? Math.round(totalMinutes / userCount) : 0;
+            const avgMinutes = userCount > 0 ?
+            Math.round(totalMinutes / userCount) : 0;
             
             detailGroupUsersElement.textContent = userCount;
             detailGroupTotalTimeElement.textContent = totalMinutes;
@@ -1793,7 +1723,6 @@
         // 更新分组趋势图 - 修复后的版本，包含所有日期
         function updateGroupTrendChart(records) {
             const ctx = groupTrendChartCanvas.getContext('2d');
-            
             // 如果图表已存在，销毁它
             if (window.groupTrendChart) {
                 window.groupTrendChart.destroy();
@@ -1806,7 +1735,8 @@
                 
                 const endDate = new Date();
                 const startDate = new Date();
-                startDate.setDate(startDate.getDate() - 13); // 最近14天
+                startDate.setDate(startDate.getDate() - 13);
+                // 最近14天
                 
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
@@ -1869,14 +1799,12 @@
                     dailyStudy[record.date] = record.study_minutes;
                 }
             });
-            
             // 获取所有日期的范围
             const allDates = Object.keys(dailyStudy);
             if (allDates.length === 0) return;
             
             // 排序日期
             allDates.sort((a, b) => new Date(a) - new Date(b));
-            
             // 获取开始和结束日期
             const startDate = new Date(allDates[0]);
             const endDate = new Date(allDates[allDates.length - 1]);
@@ -1894,12 +1822,10 @@
             const labels = dateArray.map(date => {
                 return `${date.getMonth() + 1}/${date.getDate()}`;
             });
-            
             const data = dateArray.map(date => {
                 const dateStr = date.toISOString().split('T')[0];
                 return dailyStudy[dateStr] || 0;
             });
-            
             window.groupTrendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -1955,7 +1881,6 @@
         function displayUserList() {
             // 获取所有用户
             let users = [...new Set(allUsersData.map(record => record.user_name))];
-            
             // 根据当前分组筛选用户
             if (currentGroup === '未分组') {
                 users = users.filter(user => !userGroups[user]);
@@ -1964,7 +1889,6 @@
             }
             
             userListElement.innerHTML = '<h5>用户列表</h5>';
-            
             if (users.length === 0) {
                 userListElement.innerHTML += '<p>暂无用户数据</p>';
                 return;
@@ -1992,15 +1916,18 @@
                     </div>
                     <div class="user-group-selector">
                         <select class="group-select" data-user="${user}">
-                            <option value="未分组" ${currentUserGroup === '未分组' ? 'selected' : ''}>未分组</option>
-                            <option value="儿童班" ${currentUserGroup === '儿童班' ? 'selected' : ''}>儿童班</option>
-                            <option value="少年班" ${currentUserGroup === '少年班' ? 'selected' : ''}>少年班</option>
-                            <option value="成人班" ${currentUserGroup === '成人班' ? 'selected' : ''}>成人班</option>
+                            <option value="未分组" ${currentUserGroup === '未分组' ?
+                            'selected' : ''}>未分组</option>
+                            <option value="儿童班" ${currentUserGroup === '儿童班' ?
+                            'selected' : ''}>儿童班</option>
+                            <option value="少年班" ${currentUserGroup === '少年班' ?
+                            'selected' : ''}>少年班</option>
+                            <option value="成人班" ${currentUserGroup === '成人班' ?
+                            'selected' : ''}>成人班</option>
                         </select>
                         <button class="delete-user" data-user="${user}">删除用户</button>
                     </div>
                 `;
-                
                 userListElement.appendChild(userItem);
                 
                 // 添加分组选择事件监听器
@@ -2010,7 +1937,6 @@
                     const newGroup = this.value;
                     updateUserGroup(userName, newGroup);
                 });
-                
                 // 添加点击事件查看用户详情
                 userItem.addEventListener('click', function(e) {
                     if (!e.target.classList.contains('delete-user') && !e.target.classList.contains('group-select')) {
@@ -2040,7 +1966,6 @@
                     }, {
                         onConflict: 'user_name'
                     });
-                
                 if (error) {
                     console.error('更新用户分组失败:', error);
                     showNotification('更新分组失败', 'error');
@@ -2052,7 +1977,6 @@
                 
                 // 重新加载管理员数据以更新显示
                 loadAdminData();
-                
             } catch (error) {
                 console.error('更新用户分组时出错:', error);
                 showNotification('网络错误，请检查连接', 'error');
@@ -2071,7 +1995,6 @@
                     .select('*')
                     .eq('user_name', userName)
                     .order('date', { ascending: true });
-                
                 if (error) {
                     console.error('获取用户学习记录失败:', error);
                     showNotification('获取用户学习记录失败', 'error');
@@ -2082,13 +2005,10 @@
                 
                 // 更新用户详情统计
                 updateUserDetailStats();
-                
                 // 渲染用户详情日历
                 renderDetailCalendar();
-                
                 // 更新用户详情趋势图
                 updateDetailTrendChart();
-                
                 // 显示用户详情视图
                 document.querySelector('.group-management').style.display = 'none';
                 userDetailView.classList.remove('hidden');
@@ -2139,13 +2059,10 @@
         // 渲染用户详情日历
         function renderDetailCalendar() {
             detailCalendarElement.innerHTML = '';
-            
             // 获取当月第一天是星期几
             const firstDay = new Date(detailCurrentYear, detailCurrentMonth, 1).getDay();
-            
             // 获取当月天数
             const daysInMonth = new Date(detailCurrentYear, detailCurrentMonth + 1, 0).getDate();
-            
             // 添加上个月的空白天数
             for (let i = 0; i < firstDay; i++) {
                 const emptyDay = document.createElement('div');
@@ -2159,7 +2076,6 @@
                 dayElement.className = 'calendar-day';
                 
                 const dateStr = `${detailCurrentYear}-${(detailCurrentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-                
                 // 检查这一天是否有学习记录
                 if (selectedUserRecords && selectedUserRecords.length > 0) {
                     const hasRecord = selectedUserRecords.some(record => record.date === dateStr);
@@ -2180,7 +2096,6 @@
         // 更新用户详情趋势图 - 修复后的版本，包含所有日期
         function updateDetailTrendChart() {
             const ctx = detailTrendChartCanvas.getContext('2d');
-            
             // 如果图表已存在，销毁它
             if (window.detailTrendChart) {
                 window.detailTrendChart.destroy();
@@ -2193,7 +2108,8 @@
                 
                 const endDate = new Date();
                 const startDate = new Date();
-                startDate.setDate(startDate.getDate() - 13); // 最近14天
+                startDate.setDate(startDate.getDate() - 13);
+                // 最近14天
                 
                 for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
                     const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
@@ -2256,14 +2172,12 @@
                     dailyStudy[record.date] = record.study_minutes;
                 }
             });
-            
             // 获取所有日期的范围
             const allDates = Object.keys(dailyStudy);
             if (allDates.length === 0) return;
             
             // 排序日期
             allDates.sort((a, b) => new Date(a) - new Date(b));
-            
             // 获取开始和结束日期
             const startDate = new Date(allDates[0]);
             const endDate = new Date(allDates[allDates.length - 1]);
@@ -2281,12 +2195,10 @@
             const labels = dateArray.map(date => {
                 return `${date.getMonth() + 1}/${date.getDate()}`;
             });
-            
             const data = dateArray.map(date => {
                 const dateStr = date.toISOString().split('T')[0];
                 return dailyStudy[dateStr] || 0;
             });
-            
             window.detailTrendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2350,7 +2262,6 @@
                     .from('study_records')
                     .delete()
                     .eq('user_name', userName);
-                
                 if (recordError) {
                     console.error('删除用户学习记录失败:', recordError);
                     showNotification('删除用户学习记录失败', 'error');
@@ -2362,7 +2273,6 @@
                     .from('user_groups')
                     .delete()
                     .eq('user_name', userName);
-                
                 if (groupError) {
                     console.error('删除用户分组失败:', groupError);
                     // 不返回，因为主要的学习记录已经删除成功
@@ -2370,12 +2280,10 @@
                 
                 // 从本地分组数据中删除用户
                 delete userGroups[userName];
-                
                 showNotification(`已删除用户 "${userName}" 的所有记录`, 'success');
                 
                 // 重新加载管理员数据
                 loadAdminData();
-                
             } catch (error) {
                 console.error('删除用户时出错:', error);
                 showNotification('网络错误，请检查连接', 'error');
@@ -2385,7 +2293,6 @@
         // 更新管理员趋势图 - 修复后的版本，包含所有日期
         function updateAdminTrendChart(startDate, endDate) {
             const ctx = adminTrendChartCanvas.getContext('2d');
-            
             // 如果图表已存在，销毁它
             if (window.adminTrendChart) {
                 window.adminTrendChart.destroy();
@@ -2399,7 +2306,8 @@
                 
                 const end = new Date();
                 const start = new Date();
-                start.setDate(start.getDate() - 13); // 最近14天
+                start.setDate(start.getDate() - 13);
+                // 最近14天
                 
                 for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
                     const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
@@ -2455,18 +2363,16 @@
             
             // 按日期分组计算总学习时长
             const dailyData = {};
-            
             allUsersData.forEach(record => {
                 if (!dailyData[record.date]) {
                     dailyData[record.date] = 0;
                 }
                 dailyData[record.date] += record.study_minutes;
             });
-            
             // 如果没有指定日期范围，使用最近14天
-            let start = startDate ? new Date(startDate) : new Date();
+            let start = startDate ?
+            new Date(startDate) : new Date();
             let end = endDate ? new Date(endDate) : new Date();
-            
             // 如果用户没有选择日期范围，默认显示最近14天
             if (!startDate && !endDate) {
                 start = new Date();
@@ -2486,12 +2392,10 @@
             const labels = dateArray.map(date => {
                 return `${date.getMonth() + 1}/${date.getDate()}`;
             });
-            
             const data = dateArray.map(date => {
                 const dateStr = date.toISOString().split('T')[0];
                 return dailyData[dateStr] || 0;
             });
-            
             window.adminTrendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2540,7 +2444,6 @@
         // 显示通知
         function showNotification(message, type = 'success') {
             notification.textContent = message;
-            
             // 设置通知颜色
             if (type === 'error') {
                 notification.style.background = 'linear-gradient(135deg, #e74c3c, #c0392b)';
@@ -2551,7 +2454,6 @@
             }
             
             notification.classList.add('show');
-            
             // 3秒后隐藏通知
             setTimeout(() => {
                 notification.classList.remove('show');
