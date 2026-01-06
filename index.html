@@ -7,24 +7,31 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
     <style>
-        /* CSS样式保持不变 */
+        /* --- 基础样式 --- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: #333; line-height: 1.6; padding: 20px; min-height: 100vh; }
         .container { max-width: 1200px; margin: 0 auto; background-color: rgba(255, 255, 255, 0.95); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); padding: 30px; position: relative; overflow: hidden; }
         .container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #6a11cb, #2575fc); }
+        
         h1, h2, h3 { color: #2c3e50; margin-bottom: 20px; }
         h1 { text-align: center; font-size: 2.5rem; margin-bottom: 30px; color: #2575fc; position: relative; }
         h1::after { content: ''; display: block; width: 100px; height: 4px; background: linear-gradient(90deg, #6a11cb, #2575fc); margin: 10px auto; border-radius: 2px; }
+        
         .section { margin-bottom: 40px; padding: 25px; border: 1px solid #e0e0e0; border-radius: 10px; background: white; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); transition: transform 0.3s, box-shadow 0.3s; }
         .section:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+        
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #34495e; }
         input, select, button { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; transition: all 0.3s; }
         input:focus, select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2); }
+        
         button { background: linear-gradient(135deg, #3498db, #2980b9); color: white; border: none; cursor: pointer; font-weight: 600; letter-spacing: 0.5px; }
         button:hover { background: linear-gradient(135deg, #2980b9, #2575fc); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); }
         button:active { transform: translateY(0); }
+        
         .timer { font-size: 4rem; text-align: center; margin: 30px 0; color: #e74c3c; font-weight: bold; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1); }
+        
+        /* 日历样式 */
         .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 20px; }
         .calendar-header { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 10px; }
         .calendar-header div { text-align: center; font-weight: bold; color: #2c3e50; padding: 10px; }
@@ -33,47 +40,101 @@
         .calendar-day.checked { background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border-color: #27ae60; box-shadow: 0 4px 8px rgba(46, 204, 113, 0.3); }
         .calendar-date { font-size: 14px; font-weight: bold; }
         .calendar-check { font-size: 18px; }
+        
+        .month-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .month-selector button { width: auto; padding: 10px 20px; }
+        .month-display { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+
+        /* 管理员与其他样式 */
         .admin-section { background-color: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 5px solid #3498db; }
         .hidden { display: none; }
         .notification { position: fixed; top: 20px; right: 20px; padding: 15px 25px; background: linear-gradient(135deg, #2ecc71, #27ae60); color: white; border-radius: 8px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); z-index: 1000; transform: translateX(150%); transition: transform 0.5s; }
         .notification.show { transform: translateX(0); }
+        
         .chart-container { position: relative; height: 300px; width: 100%; margin-top: 20px; }
         .user-stats { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; }
         .stat-card { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); flex: 1; margin: 10px; min-width: 150px; border-top: 4px solid #3498db; }
         .stat-value { font-size: 2rem; font-weight: bold; color: #2c3e50; margin: 10px 0; }
         .stat-label { color: #7f8c8d; font-size: 0.9rem; }
-        @media (max-width: 768px) { .calendar { grid-template-columns: repeat(7, 1fr); } .calendar-day { padding: 8px 2px; min-height: 50px; } .timer { font-size: 3rem; } .user-stats { flex-direction: column; } }
+        
         .sound-control, .vibration-control { display: flex; align-items: center; justify-content: center; margin: 15px 0; }
         .sound-toggle, .vibration-toggle { width: auto; padding: 8px 15px; background: #f1f2f6; color: #2c3e50; margin-left: 10px; }
         .sound-toggle.active, .vibration-toggle.active { background: #3498db; color: white; }
-        .month-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .month-selector button { width: auto; padding: 10px 20px; }
-        .month-display { font-size: 1.5rem; font-weight: bold; color: #2c3e50; }
+        
         .user-list { margin-top: 20px; }
         .user-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px; background: white; cursor: pointer; }
         .user-item:hover { background-color: #f8f9fa; }
         .delete-user { background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; }
-        .delete-user:hover { background: #c0392b; }
         .user-details { margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; }
         .user-detail-view, .group-detail-view { margin-top: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background: white; }
         .back-button { background: #7f8c8d; margin-bottom: 15px; }
-        .back-button:hover { background: #636e72; }
         .timer-status { text-align: center; margin: 10px 0; font-size: 14px; color: #7f8c8d; }
         .background-timer-active { background: linear-gradient(135deg, #ffeaa7, #fab1a0) !important; }
+        
+        /* 分组样式 */
         .group-management { margin-top: 20px; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px; background: white; }
         .group-selector { display: flex; gap: 10px; margin-bottom: 20px; }
         .group-selector button { flex: 1; padding: 10px; background: #f1f2f6; color: #2c3e50; }
         .group-selector button.active { background: #3498db; color: white; }
         .group-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .group-stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05); border-top: 4px solid #3498db; cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
-        .group-stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
         .group-name { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; color: #2c3e50; }
         .user-group-selector { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
         .user-group-selector select { width: auto; flex: 1; }
+        .total-stats { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+
+        /* PC端默认日期选择器样式 */
         .date-range-selector { display: flex; gap: 10px; margin-bottom: 20px; }
         .date-range-selector input { flex: 1; }
         .date-range-selector button { width: auto; padding: 10px 20px; }
-        .total-stats { margin: 20px 0; padding: 20px; background: #f8f9fa; border-radius: 10px; }
+
+        /* --- 手机端适配 (关键修改) --- */
+        @media (max-width: 768px) {
+            .container { padding: 15px; } /* 减小内边距 */
+            
+            .calendar { grid-template-columns: repeat(7, 1fr); }
+            .calendar-day { padding: 8px 2px; min-height: 50px; }
+            .timer { font-size: 3rem; }
+            .user-stats { flex-direction: column; }
+            
+            /* 【修复】日期筛选器在手机端垂直排列 */
+            .date-range-selector {
+                flex-direction: column; /* 竖向排列 */
+                gap: 10px;
+            }
+            .date-range-selector input {
+                width: 100%; /* 占满宽度 */
+            }
+            .date-range-selector span {
+                text-align: center; /* "至"文字居中 */
+                display: block;
+            }
+            .date-range-selector button {
+                width: 100%; /* 按钮占满宽度 */
+                margin-top: 5px;
+            }
+            
+            /* 分组按钮换行 */
+            .group-selector {
+                flex-wrap: wrap; 
+            }
+            .group-selector button {
+                flex: 1 1 40%; /* 每个按钮至少占40% */
+                margin-bottom: 5px;
+            }
+            
+            .user-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .user-group-selector {
+                width: 100%;
+                margin-top: 10px;
+            }
+            .user-group-selector select {
+                flex: 1;
+            }
+        }
     </style>
 </head>
 <body>
