@@ -10,7 +10,19 @@
         /* --- 基础样式 --- */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: #333; line-height: 1.6; padding: 20px; min-height: 100vh; }
-        .container { max-width: 1200px; margin: 0 auto; background-color: rgba(255, 255, 255, 0.95); border-radius: 15px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); padding: 30px; position: relative; overflow: hidden; }
+        
+        /* 关键修改：去掉了 overflow: hidden，防止手机端内容被截断 */
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            background-color: rgba(255, 255, 255, 0.95); 
+            border-radius: 15px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); 
+            padding: 30px; 
+            position: relative; 
+            /* overflow: hidden; <--- 已删除此行 */
+        }
+        
         .container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: linear-gradient(90deg, #6a11cb, #2575fc); }
         
         h1, h2, h3 { color: #2c3e50; margin-bottom: 20px; }
@@ -90,7 +102,7 @@
 
         /* --- 手机端适配 (关键修改) --- */
         @media (max-width: 768px) {
-            .container { padding: 15px; } /* 减小内边距 */
+            .container { padding: 15px; }
             
             .calendar { grid-template-columns: repeat(7, 1fr); }
             .calendar-day { padding: 8px 2px; min-height: 50px; }
@@ -104,14 +116,16 @@
             }
             .date-range-selector input {
                 width: 100%; /* 占满宽度 */
+                min-height: 44px; /* 增加高度方便点击 */
             }
             .date-range-selector span {
-                text-align: center; /* "至"文字居中 */
+                text-align: center;
                 display: block;
             }
             .date-range-selector button {
-                width: 100%; /* 按钮占满宽度 */
+                width: 100%;
                 margin-top: 5px;
+                min-height: 44px; /* 增加高度方便点击 */
             }
             
             /* 分组按钮换行 */
@@ -119,8 +133,9 @@
                 flex-wrap: wrap; 
             }
             .group-selector button {
-                flex: 1 1 40%; /* 每个按钮至少占40% */
+                flex: 1 1 40%;
                 margin-bottom: 5px;
+                min-height: 44px;
             }
             
             .user-item {
@@ -133,6 +148,7 @@
             }
             .user-group-selector select {
                 flex: 1;
+                min-height: 44px;
             }
         }
     </style>
